@@ -5,14 +5,15 @@ if [ -z "$1" ]; then
     exit 22
 fi
 
-URL=`cat $1 | gawk -F "\"*,\"*" '{print $1}'`
-USERNAME=`cat $1 | gawk -F "\"*,\"*" '{print $2}'`
-PASSWORD=`cat $1 | gawk -F "\"*,\"*" '{print $3}'`
-HOSTTOPING=`cat $1 | gawk -F "\"*,\"*" '{print $4}'`
-
-
 OPENCONNECT_PID=""
 HOSTREACHED=""
+
+function loadParameters {
+    URL=`cat $1 | gawk -F "\"*,\"*" '{print $1}'`
+    USERNAME=`cat $1 | gawk -F "\"*,\"*" '{print $2}'`
+    PASSWORD=`cat $1 | gawk -F "\"*,\"*" '{print $3}'`
+    HOSTTOPING=`cat $1 | gawk -F "\"*,\"*" '{print $4}'`    
+}
  
 function checkOpenconnectProcess {
     ps -p $OPENCONNECT_PID &> /dev/null
@@ -31,9 +32,9 @@ function startOpenConnect {
 }
 
 echo "Connecting to VPN..."
+loadParameters $1
 startOpenConnect
 
- 
 while true
 do
     sleep 20
@@ -41,6 +42,7 @@ do
     checkOpenconnectProcess
     if [ $RUNNING -ne 0 ]; then  
         echo "Reconnecting to VPN..."
+        loadParameters $1
         startOpenConnect 
 
     fi
@@ -48,6 +50,7 @@ do
     if [ $HOSTREACHED -ne 0 ]; then  
         kill $OPENCONNECT_PID
         echo "Reconnecting to VPN..."
+        loadParameters $1
         startOpenConnect 
     fi
 done
